@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang = "ja">
+  <head>
+    <meta charset="UTF-8">
+    <title>テスト記事</title>
+    <meta name="description" content="テスト記事">
+    <meta name="viewport" content = "width=device-width , initial-scale=1">
+    <link rel="stylesheet" href="/css/main.css">
+  </head>
+    <body>
+    <div id="header"></div>
+    <main>
+    <h1>Siv3Dゲームジャム2023参加記</h1> 
+    <div class = "date">2023-10-26</div>
+    <hr>
+    先日ゲームジャムに一人で参加したので、それの参加記です．
+    期間は2週間でした．
+    <h2> 作ったもの </h2>
+    <center>
+    <img src="/images/0001/ss.png" alt="4日目の進捗" width = "50%">
+    </center>
+    金魚すくいをテーマにしたジャンプアクションゲーム．
+    ポイを乗り継いで、なるべく急いで上のほうにあるゴールを目指します．
+    <br>
+    <a href="https://drive.google.com/file/d/1y5FJ3DBAhUSFKGV0nQf26LYSncaXoRS0/view?usp=drive_link">ダウンロード</a>
+    <br>
+    <h2>操作方法</h2>
+    <ul>
+      <li>左右キー:プレイヤーの移動</li>
+      <li>スペースキー:プレイヤーのジャンプ</li>
+      <li> ADキー：ポイの回転</li>
+    </ul>
+    <h2>反省点</h2>
+    全体的にうまく行かなかったと思う．
+    <h3> テーマ選択</h3>
+    ゲームジャムのお題が「すくう」で、具体的なネタが中々思いつかなかったため安直に金魚すくいを選んでしまった．ネタを無理やり出したタイミングでは、60点くらいだったが、いざ完成したら20~30点程度の自己採点になってしまった．面白いゲームを作るためには、まず作るモチベーションを確保しないといけないが、ゲームのネタに対する自己評価が低いとモチベーションを確保できない．そのため、ネタ出しの段階では最低80点程度の面白さが必要だったのではないかと思う．
+    <h3>ウィンドウサイズ</h3>
+    縦長のウィンドウを利用するゲームだったため、サイズが小さいワイドディスプレイなどではプレイ不可能になってしまった．終盤にウィンドウサイズの変更に対応させようかと思ったが、その時点で修正困難な作りになってしまっていたため断念．事前にテストをしておくべきだった．
+    <br> <br>
+    今後ゲームジャム等に参加する際には気を付けたい．
+    </main>
+    <div id="footer"></div>
+    <script src="/js/main.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script> 
+      $(function(){
+        $("#header").load("/header.html"); 
+      });
+    </script> 
+    <script> 
+      $(function(){
+        $("#footer").load("/footer.html"); 
+      });
+    </script> 
+  </body>
+</html>

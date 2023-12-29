@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang = "ja">
+  <head>
+    <meta charset="UTF-8">
+    <title>Rust-SDL2でウィンドウサイズを変更する</title>
+    <meta name="description" content="Rust-SDL2でウィンドウサイズを変更する">
+    <meta name="viewport" content = "width=device-width , initial-scale=1">
+    <link rel="stylesheet" href="/css/main.css">
+  </head>
+  <body>
+    <div id="header"></div>
+    <h1>Rust-SDL2でウィンドウサイズを変更する</h1> 
+    <div class = "date">2023-12-26</div>
+    <hr>
+    Rust-SDL2でウィンドウに対して描画する際には，WindowクラスからCanvasクラスを生成しないといけないけど，Canvasクラスを生成した時点でWindowクラスの所有権がムーブされてしまうので，直接Windowクラスを触ることができない．
+    cloneも実装されていなかったと思う.
+    <br>
+    Canvasクラスを生成する前に，WindowクラスからSDL_Windowの生ポインタを取得して，SDLのSDL_SetWindowSize関数を直接呼び出すことで，ウィンドウを維持したままウィンドウサイズを変更できた．生ポインタを使うのでunsafeになってしまうので注意．unsafeにならない方法は知りません．
+    
+    <pre>
+      <code class="language-rust">
+// main.rs
+use sdl2::event::Event;
+use sdl2::keyboard::{Keycode, Scancode};
+use sdl2::sys::SDL_SetWindowSize;
+use std::time::Duration;
+
+pub fn main() {
+    let sdl_context = sdl2::init().unwrap();
+    let video_subsystem = sdl_context.video().unwrap();
+    let width = 640;
+    let mut height = 640;
+    let window = video_subsystem
+        .window("Rust-SDL2", width, height)
+        .position_centered()
+        .position(0, 0)
+        .build()
+        .unwrap();
+    let window_sdl = window.raw();
+    let mut canvas = window.into_canvas().build().unwrap();
+    let mut event_pump = sdl_context.event_pump().unwrap();
+    'running: loop {
+        for event in event_pump.poll_iter() {
+            match event {
+                Event::Quit { .. }
+                | Event::KeyDown {
+                    keycode: Some(Keycode::Escape),
+                    ..
+                } => break 'running,
+                _ => {}
+            }
+        }
+        let state = event_pump.keyboard_state();
+        if state.is_scancode_pressed(Scancode::Up) {
+            if height <= 1000 {
+                height += 3;
+            }
+            unsafe {// サイズ変更
+                SDL_SetWindowSize(window_sdl, width as i32, height as i32);
+            }
+        }
+        if state.is_scancode_pressed(Scancode::Down) {
+            if height >= 10 {
+                height -= 3;
+            }
+            unsafe {// サイズ変更
+                SDL_SetWindowSize(window_sdl, width as i32, height as i32);
+            }
+        }
+        canvas.clear();
+        canvas.present();
+
+        std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+    }
+}
+</code>
+</pre>
+<div id="footer"></div>
+<script src="/js/main.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script> 
+  $(function(){
+    $("#header").load("/header.html"); 
+  });
+</script> 
+<script> 
+  $(function(){
+    $("#footer").load("/footer.html"); 
+  });
+</script>
+<!-- ソースコードのシンタックスハイライトに必要 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+<!-- ここまで -->
+</body>
+</html>

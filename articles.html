@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang = "ja">
+  <head>
+    <meta charset="UTF-8">
+    <title>記事一覧</title>
+    <meta name="description" content="記事一覧">
+    <meta name="viewport" content = "width=device-width , initial-scale=1">
+    <link rel="stylesheet" href="/css/main.css">
+  </head>
+  <body>
+    <div id="header"></div>
+    <main>
+
+    ここはブログ記事の一覧表です．
+    <ul>
+      <li> <a href="articles/0000.html">テスト記事</a> </li>
+      <li> <a href="articles/0001.html">Siv3Dゲームジャム2023参加記</a> </li>
+      <li> <a href="articles/0002.html">Rust-SDL2でウィンドウサイズを変更する</a> </li>
+    </ul>
+    <div id="footer"></div>
+    </main>
+    <script src="/js/main.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script> 
+      $(function(){
+        $("#header").load("/header.html"); 
+      });
+    </script> 
+    <script> 
+      $(function(){
+        $("#footer").load("/footer.html"); 
+      });
+    </script> 
+    
+  </body>
+</html>
