@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Rust-SDL2でヘビゲーム作った</title>
+    <meta name="description" content="Rust-SDL2でヘビゲーム作った" />
+    <meta name="viewport" content="width=device-width , initial-scale=1" />
+    <link rel="stylesheet" href="/css/main.css" />
+  </head>
+  <body>
+    <div id="header"></div>
+    <main>
+      <h1>Rust-SDL2でヘビゲーム作った</h1>
+      <div class="date">2023-12-31</div>
+      <hr />
+      タイトルの通り．1~2時間で完成した．
+      <center>
+        <img src="/images/0003/0003.png" alt="SS" width = "300px">
+      </center>
+      大晦日になにをやっているんだ．
+      <pre>
+<code class="language-rust">// main.rs
+  use sdl2::event::Event;
+  use sdl2::keyboard::Keycode;
+  use std::time::Duration;
+  
+  use sdl2::pixels::Color;
+  mod board;
+  mod consts;
+  mod game;
+  mod hebi;
+  mod propertys;
+  pub fn main() {
+      let sdl_context = sdl2::init().unwrap();
+      let video_subsystem = sdl_context.video().unwrap();
+      let window = video_subsystem
+          .window("Rust-SDL2", consts::WINDOW_WIDTH, consts::WINDOW_HEIGHT)
+          .position_centered()
+          .position(0, 0)
+          .build()
+          .unwrap();
+      let mut canvas = window.into_canvas().build().unwrap();
+      let mut event_pump = sdl_context.event_pump().unwrap();
+      let mut game: game::Game = game::Game::new();
+      let mut property = propertys::Propertys::new();
+      'running: loop {
+          for event in event_pump.poll_iter() {
+              match event {
+                  Event::Quit { .. }
+                  | Event::KeyDown {
+                      keycode: Some(Keycode::Escape),
+                      ..
+                  } => break 'running,
+                  _ => {}
+              }
+          }
+          canvas.set_draw_color(Color::RGB(0, 0, 0));
+          canvas.clear();
+  
+          property.update(&event_pump);
+          game.update(&property);
+          game.draw(&mut canvas);
+  
+          canvas.present();
+  
+          std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+      }
+  }
+  
+</code>
+<code class="language-rust">// propertys.rs
+  use sdl2::keyboard::Scancode;
+  use sdl2::EventPump;
+  use std::collections::HashSet;
+  use std::time;
+  pub struct Propertys {
+      inputs: HashSet<Input>,
+      prevtime: time::Instant,
+      deltatime: f32,
+  }
+  #[derive(Debug, Hash, Eq, PartialEq)]
+  pub enum Input {
+      Up,
+      Left,
+      Right,
+      Down,
+  }
+  
+  impl Propertys {
+      pub fn new() -> Self {
+          Self {
+              inputs: vec![].into_iter().collect(),
+              prevtime: time::Instant::now(),
+              deltatime: 0.0,
+          }
+      }
+      pub fn update(&mut self, eventpump: &EventPump) {
+          self.deltatime = self.prevtime.elapsed().as_secs_f32();
+          self.prevtime = time::Instant::now();
+          self.updateinputs(eventpump);
+      }
+      fn updateinputs(&mut self, eventpump: &EventPump) {
+          self.inputs.clear();
+          let state = eventpump.keyboard_state();
+          if state.is_scancode_pressed(Scancode::Left) {
+              self.inputs.insert(Input::Left);
+          }
+          if state.is_scancode_pressed(Scancode::Up) {
+              self.inputs.insert(Input::Up);
+          }
+          if state.is_scancode_pressed(Scancode::Right) {
+              self.inputs.insert(Input::Right);
+          }
+          if state.is_scancode_pressed(Scancode::Down) {
+              self.inputs.insert(Input::Down);
+          }
+      }
+      pub fn is_pressed(&self, key: &Input) -> bool {
+          self.inputs.contains(key)
+      }
+      pub fn get_deltatime(&self) -> f32 {
+          self.deltatime
+      }
+  }
+  
+</code>
+<code class="language-rust">// hebi.rs
+  use crate::board::Board;
+  use crate::propertys::{Input, Propertys};
+  use sdl2::pixels::Color;
+  use sdl2::rect::Rect;
+  use sdl2::render::WindowCanvas;
+  pub struct Hebi {
+      positions: Vec<(u32, u32)>,
+      length: u32,
+      direction: Direciton,
+      elapsedtime: f32,
+  }
+  
+  enum Direciton {
+      Up,
+      Down,
+      Left,
+      Right,
+  }
+  impl Hebi {
+      pub fn new() -> Self {
+          Hebi {
+              positions: vec![(0, 0)],
+              length: 1,
+              direction: Direciton::Up,
+              elapsedtime: 0.0,
+          }
+      }
+      fn direction_to_pair(&self, direction: &Direciton) -> (i32, i32) {
+          match direction {
+              Direciton::Up => (0, -1),
+              Direciton::Down => (0, 1),
+              Direciton::Left => (-1, 0),
+              Direciton::Right => (1, 0),
+          }
+      }
+      fn update_direction(&mut self, property: &Propertys) {
+          if property.is_pressed(&Input::Down) {
+              self.direction = Direciton::Down;
+          }
+          if property.is_pressed(&Input::Left) {
+              self.direction = Direciton::Left;
+          }
+          if property.is_pressed(&Input::Right) {
+              self.direction = Direciton::Right;
+          }
+          if property.is_pressed(&Input::Up) {
+              self.direction = Direciton::Up;
+          }
+      }
+      pub fn update(&mut self, property: &Propertys, board: &Board) {
+          self.elapsedtime += property.get_deltatime();
+          self.update_direction(property);
+          if self.elapsedtime >= 0.1 {
+              self.elapsedtime = 0.0;
+          } else {
+              return;
+          }
+          let newpos = self.positions.get(0).unwrap().clone();
+  
+          let dir = self.direction_to_pair(&self.direction);
+          let newpos = (
+              (newpos.0 as i32 + dir.0 + board.get_boardsize().0 as i32)
+                  % board.get_boardsize().0 as i32,
+              (newpos.1 as i32 + dir.1 + board.get_boardsize().0 as i32)
+                  % board.get_boardsize().1 as i32,
+          );
+          let newpos = (newpos.0 as u32, newpos.1 as u32);
+          self.positions.insert(0, newpos);
+      }
+      pub fn draw(&self, canvas: &mut WindowCanvas, board: &Board) {
+          canvas.set_draw_color(Color::RGB(255, 64, 64));
+          let cellsize = board.get_cellsize();
+          for i in 0..self.length {
+              match self.positions.get(i as usize) {
+                  Some((x, y)) => {
+                      canvas
+                          .fill_rect(Rect::new(
+                              (cellsize * x.clone()) as i32,
+                              (cellsize * y.clone()) as i32,
+                              cellsize,
+                              cellsize,
+                          ))
+                          .unwrap();
+                  }
+                  None => {}
+              }
+          }
+      }
+      pub fn get_top(&self) -> (u32, u32) {
+          self.positions.get(0).unwrap().clone()
+      }
+      pub fn add_length(&mut self) {
+          self.length += 1;
+      }
+      pub fn isgameover(&self) -> bool {
+          for i in 1..self.length {
+              if self.positions[i as usize] == self.positions[0] {
+                  return true;
+              }
+          }
+          return false;
+      }
+  }
+  
+</code>
+<code class="language-rust">// game.rs
+  use crate::board::Board;
+  use crate::hebi::Hebi;
+  use crate::propertys::Propertys;
+  use sdl2::render::WindowCanvas;
+  pub struct Game {
+      hebi: Hebi,
+      board: Board,
+  }
+  
+  impl Game {
+      pub fn new() -> Self {
+          Game {
+              hebi: Hebi::new(),
+              board: Board::new(),
+          }
+      }
+      fn isgameover(&self) -> bool {
+          self.hebi.isgameover()
+      }
+      pub fn update(&mut self, prop: &Propertys) {
+          self.hebi.update(prop, &self.board);
+          self.board.update(&mut self.hebi);
+          if self.isgameover() {
+              self.hebi = Hebi::new();
+              self.board = Board::new();
+          }
+      }
+      pub fn draw(&self, canvas: &mut WindowCanvas) {
+          self.hebi.draw(canvas, &self.board);
+          self.board.draw(canvas);
+      }
+  }
+  
+</code>
+<code class="language-rust">// consts.rs
+  pub const WINDOW_WIDTH :u32 = 640;
+  pub const WINDOW_HEIGHT :u32 = 640;
+</code>
+<code class="language-rust">// board.rs
+  use crate::consts;
+  use crate::hebi::Hebi;
+  use rand::Rng;
+  use sdl2::pixels::Color;
+  use sdl2::rect::Rect;
+  use sdl2::render::WindowCanvas;
+  pub struct Board {
+      obj: (u32, u32),
+  }
+  
+  impl Board {
+      pub fn new() -> Self {
+          let mut ret = Self { obj: (0, 0) };
+          ret.set_obj();
+          ret
+      }
+      fn set_obj(&mut self) {
+          let mut rng = rand::thread_rng();
+          self.obj.0 = rng.gen::<u32>() % self.get_boardsize().0;
+          self.obj.1 = rng.gen::<u32>() % self.get_boardsize().1;
+      }
+      pub fn get_cellsize(&self) -> u32 {
+          32
+      }
+      pub fn get_boardsize(&self) -> (u32, u32) {
+          let cell = self.get_cellsize();
+          (consts::WINDOW_HEIGHT / cell, consts::WINDOW_WIDTH / cell)
+      }
+      pub fn update(&mut self, hebi: &mut Hebi) {
+          let hebi_top = hebi.get_top();
+          if hebi_top == self.obj {
+              self.set_obj();
+              hebi.add_length();
+          }
+      }
+      pub fn draw(&self, canvas: &mut WindowCanvas) {
+          let cellsize = self.get_cellsize();
+          canvas.set_draw_color(Color::RGB(64, 128, 64));
+          canvas.fill_rect(Rect::new(
+              (cellsize * self.obj.0.clone()) as i32,
+              (cellsize * self.obj.1.clone()) as i32,
+              cellsize,
+              cellsize,
+          )).unwrap();
+      }
+  }
+  
+</code>
+<code class="language-rust">// Cargo.toml
+  [package]
+  name = "sample_sdl2"
+  version = "0.1.0"
+  edition = "2021"
+  
+  # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+  
+  [dependencies]
+  rand = "0.8.5"
+  
+  
+  [dependencies.sdl2]
+  version = "0.36.0" 
+  default-features = false
+  features = ["image"]
+</code>
+</pre>
+    </main>
+    <div id="footer"></div>
+    <script src="/js/main.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+      $(function () {
+        $("#header").load("/header.html");
+      });
+    </script>
+    <script>
+      $(function () {
+        $("#footer").load("/footer.html");
+      });
+    </script>
+    <!-- ソースコードのシンタックスハイライトに必要 -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+    <!-- ここまで -->
+  </body>
+</html>
