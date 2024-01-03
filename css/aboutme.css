@@ -1,0 +1,26 @@
+#profileicon{
+  border-radius: 50%;  /* 角丸半径を50%にする(=円形にする) */
+  width:  300px;       /* ※縦横を同値に */
+  height: 300px;       /* ※縦横を同値に */ 
+}
+
+.sns-nav{
+  margin-top: 10px;
+  display: inline-flex;
+  list-style:none;
+  margin-top: 0px;
+  padding-left: 0px;
+  line-height:0;
+}
+.sns-nav li {
+  margin-right: 10px;
+}
+
+main{
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+h2{
+  font-family: 'Kosugi Maru', sans-serif;
+}

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang = "ja">
+  <head>
+    <meta charset="UTF-8">
+    <title>自己紹介</title>
+    <meta name="description" content="自己紹介">
+    <meta name="viewport" content = "width=device-width , initial-scale=1">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/aboutme.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="header"></div>
+    <main>
+
+    <center>
+    <img src="/images/icon.jpg" id="profileicon">
+    <hr>
+    <h2>東雲 柚木</h2>
+    
+    <ul class ="sns-nav">
+      <li> 
+        <a href="https://github.com/shinonomeY">
+          <img src="/images/iconmonstr-github-1.svg" width="25px"  alt="画像" />
+        </a>
+      </li>
+      <li> 
+        <a href="https://twitter.com/shinonome_yuzu">
+          <img src="/images/iconmonstr-twitter-1.svg" width="25px"  alt="画像" />
+        </a>
+      </li>
+    </ul>
+
+    </center>
+    都内のゲーム屋さんで働いています
+    </main>
+    <div id="footer"></div>
+    <script src="/js/main.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script> 
+      $(function(){
+        $("#header").load("/header.html"); 
+      });
+    </script> 
+    <script> 
+      $(function(){
+        $("#footer").load("/footer.html"); 
+      });
+    </script> 
+  </body>
+</html>
